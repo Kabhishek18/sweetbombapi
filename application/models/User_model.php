@@ -52,7 +52,7 @@ class User_model extends CI_Model{
         $this->db->from($this->user);
        
         if($id){
-            $array = array('email' => $id, 'status' => '0');
+            $array = array('email' => $id);
             $this->db->where($array);
             $query  = $this->db->get();
             $result = $query->row_array();

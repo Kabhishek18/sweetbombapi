@@ -64,13 +64,18 @@ class Welcome extends CI_Controller {
 			         	else{
 
 			         		$getuser = $this->user_model->GetUserEmail($email);
-			         		$token = $getuser['register_token'];
-
-			         		 $returnData = [
-                        'success' => 1,
-                        'message' => 'You have successfully logged in.',
-                        'token' => $token
-                   					 ];
+			         		if($getuser['status'] == 0){
+			         		
+				         		 $returnData = [
+				         		
+	                        'success' => 1,
+	                        'message' => 'You have successfully logged in.',
+	                        'user_data' => $getuser
+	                   					 ];
+                   			}
+                   			else{
+                   				$returnData =MessageAlertStatus(0,422,'Account Is Inactive');
+                   			}		 
 			         	}
 
 			    endif;
@@ -107,25 +112,31 @@ class Welcome extends CI_Controller {
     		// CHECKING EMPTY FIELDS
 			elseif(!isset($data->name) 
 			    || !isset($data->email) 
+			    || !isset($data->mobile) 
 			    || !isset($data->password)
 			    || empty(trim($data->name))
+			    || empty(trim($data->mobile))
 			    || empty(trim($data->email))
 			    || empty(trim($data->password))
 			    ):
 
 			    $fields = ['fields' => ['name','email','password']];
-			    $returnData = msg(0,422,'Please Fill in all Required Fields!',$fields);
+			    $returnData = MessageAlertStatus(0,422,'Please Fill in all Required Fields!',$fields);
 
 			// IF THERE ARE NO EMPTY FIELDS THEN-
 			else:
 			    
 			    $name = trim($data->name);
 			    $email = trim($data->email);
+			    $mobile = trim($data->mobile);
 			    $password = trim($data->password);
 
 			    if(!filter_var($email, FILTER_VALIDATE_EMAIL)):
 			        $returnData = MessageAlertStatus(0,422,'Invalid Email Address!');
-			    
+
+			    elseif(strlen($mobile) < 10):
+			        $returnData = MessageAlertStatus(0,422,'Your Mobile must be at least 10 digit long!');
+
 			    elseif(strlen($password) < 8):
 			        $returnData = MessageAlertStatus(0,422,'Your password must be at least 8 characters long!');
 
@@ -135,23 +146,72 @@ class Welcome extends CI_Controller {
 			    else:
 
 			         	$result = $this->user_model->VerifyUser($email);
-			        var_dump($result);
 			         	if ($result >= 1) {
 			         		$returnData =MessageAlertStatus(0,422,'Email Id Already Exist');
 			         	}
 			         	else{
 
+			         		$value['name'] = $name;  
+			         		$value['email'] = $email;  
+			         		$value['mobile'] = $mobile;  
+			         		$value['password'] = $password;  
 
 			         		$tokenData['uniqueId'] = '11';
 			                $tokenData['role'] = 'alamgir';
 			                $tokenData['timeStamp'] = Date('Y-m-d h:i:s');
 			                $jwtToken = $this->objOfJwt->GenerateToken($tokenData);
-			                $data->register_token= $jwtToken;
-			         		$data->date_create =$tokenData['timeStamp'];
-			         		$insert = $this->user_model->InserUser($data);
+			                $value['register_token']= $jwtToken;
+			         		$value['date_create'] =$tokenData['timeStamp'];
+			         		$insert = $this->user_model->InserUser($value);
 			         		if($insert)
-			         		{
-			      			  $returnData = MessageAlertStatus(1,201,'User Inserted Successfully');
+			         		{ 
+
+								$this->load->library('phpmailer_lib');
+
+								// PHPMailer object
+								$mail = $this->phpmailer_lib->load();
+
+								// SMTP configuration
+								$mail->isSMTP();
+								$mail->Host     = 'in-v3.mailjet.com';
+								$mail->SMTPAuth = true;
+								$mail->Username = '67713bf992a9c914ad3bfbac5e39b14b';
+								$mail->Password = '38af47cc4afac0ee484a6797b85fa52a';
+								$mail->SMTPSecure = 'tls';
+								$mail->Port     = 587;
+
+								$mail->setFrom('info@techcentrica.in', 'info@techcentrica.in');
+								$mail->addReplyTo('info@techcentrica.in', 'info@techcentrica.in');
+
+								// Add a recipient
+								$mail->addAddress($value['email']);
+
+								// Add cc or bcc 
+								//$mail->addCC('gokillvirus@gmail.com');
+								//$mail->addBCC('pushapnaraingupta@gmail.com');
+
+								// Email subject
+								$mail->Subject =  'Email Verfication';
+
+								// Set email format to HTML
+								$mail->isHTML(true);
+
+								// Email body content
+								$mailContent = "Click To Verify <a href='".base_url()."verify/".$value['register_token']."'>Verify Link</> ";
+								$mail->Body = $mailContent;
+
+								// Send email
+								if(!$mail->send()){
+			   					 $returnData = MessageAlertStatus(0,422,'Message could not be sent.',$mail->ErrorInfo);
+							
+								}else{
+
+								  $returnData = MessageAlertStatus(1,201,'User Inserted Successfully Verify Email');
+								}	
+			         		  
+
+
+			      			
 
 			         		}
 			         		else
