@@ -1,8 +1,6 @@
 .DS_Store
 tmp/
 error_log
-application/config/config.php
-application/config/database.php
 .well-known
 respJsonToCrmapiIcs.txt
 ~system
