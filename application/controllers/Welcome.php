@@ -154,14 +154,12 @@ class Welcome extends CI_Controller {
 			         		$value['name'] = $name;  
 			         		$value['email'] = $email;  
 			         		$value['mobile'] = $mobile;  
-			         		$value['password'] = $password;  
+			         		$value['password'] = $password; 
+			         		$value['date_create'] = Date('Y-m-d h:i:s');
+			                $jwtToken = $this->objOfJwt->GenerateToken($value);
 
-			         		$tokenData['uniqueId'] = '11';
-			                $tokenData['role'] = 'alamgir';
-			                $tokenData['timeStamp'] = Date('Y-m-d h:i:s');
-			                $jwtToken = $this->objOfJwt->GenerateToken($tokenData);
-			                $value['register_token']= $jwtToken;
-			         		$value['date_create'] =$tokenData['timeStamp'];
+			                $value['register_token']= generateUUID();
+
 			         		$insert = $this->user_model->InserUser($value);
 			         		if($insert)
 			         		{ 
@@ -197,7 +195,7 @@ class Welcome extends CI_Controller {
 								$mail->isHTML(true);
 
 								// Email body content
-								$mailContent = "Click To Verify <a href='".base_url()."verify/".$value['register_token']."'>Verify Link</> ";
+								$mailContent = "Click To Verify <a href='".base_url()."verify/".$jwtToken."/".$value['register_token']."'>Verify Link</> ";
 								$mail->Body = $mailContent;
 
 								// Send email
@@ -230,7 +228,25 @@ class Welcome extends CI_Controller {
 			echo json_encode($returnData);
 		endif;	
 
-	}	
+	}
+
+
+
+	public function VerifyEmail($value='')
+	{
+		$verify=$this->uri->segment(1,0);
+		$data['token'] = $this->uri->segment(2,0);
+		$data['id'] = $this->uri->segment(3,0);
+		if ($verify=="verify") {
+			if (!empty($data['id'])) {
+			$result =$this->user_model->VerifyUserUpdate($data['id']);
+			$returnData = (MessageAlertStatus(0,201,'Verification Successfully Done'));
+			echo json_encode($returnData);
+			}
+			
+		}
+	}
+
 
 
 	 public function LoginToken	()

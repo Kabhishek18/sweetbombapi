@@ -61,4 +61,10 @@ class User_model extends CI_Model{
         return !empty($result)?$result:false;
     }
 
+    public function VerifyUserUpdate($data)
+    {
+       $update = $this->db->query("update users SET status='0',email_verify='0' where register_token='".$data."'");
+        return $update?true:false;
+    }
+
 }?>
