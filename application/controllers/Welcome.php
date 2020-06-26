@@ -175,13 +175,13 @@ class Welcome extends CI_Controller {
 								$mail->isSMTP();
 								$mail->Host     = 'in-v3.mailjet.com';
 								$mail->SMTPAuth = true;
-								$mail->Username = '67713bf992a9c914ad3bfbac5e39b14b';
-								$mail->Password = '38af47cc4afac0ee484a6797b85fa52a';
+								$mail->Username = 'eb5ec283c3ebc29718d57b9b0e984f9a';
+								$mail->Password = '561301af6eb8aaa8f65eec21f76ec00e';
 								$mail->SMTPSecure = 'tls';
 								$mail->Port     = 587;
 
-								$mail->setFrom('info@techcentrica.in', 'info@techcentrica.in');
-								$mail->addReplyTo('info@techcentrica.in', 'info@techcentrica.in');
+								$mail->setFrom('developer@kabhishek18.com', 'developer@kabhishek18.com');
+								$mail->addReplyTo('developer@kabhishek18.com', 'developer@kabhishek18.com');
 
 								// Add a recipient
 								$mail->addAddress($value['email']);
@@ -202,7 +202,7 @@ class Welcome extends CI_Controller {
 
 								// Send email
 								if(!$mail->send()){
-			   					 $returnData = MessageAlertStatus(0,422,'Message could not be sent.',$mail->ErrorInfo);
+			   					 $returnData = MessageAlertStatus(0,422,$mail->ErrorInfo);
 							
 								}else{
 
